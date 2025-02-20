@@ -6,6 +6,18 @@
         "decorators": ""
     },
     {
+        "url": "/sw\\.js",
+        "module": "core.views.serve_file",
+        "name": "",
+        "decorators": ""
+    },
+    {
+        "url": "/sw-fallback\\.js",
+        "module": "core.views.serve_file",
+        "name": "",
+        "decorators": ""
+    },
+    {
         "url": "/favicon\\.ico",
         "module": "django.views.generic.base.RedirectView",
         "name": "",
@@ -60,6 +72,12 @@
         "decorators": ""
     },
     {
+        "url": "/models/",
+        "module": "organizations.views.simple_view",
+        "name": "organizations:models",
+        "decorators": ""
+    },
+    {
         "url": "/api/organizations/",
         "module": "organizations.api.OrganizationListAPI",
         "name": "organizations:api:organization-list",
@@ -75,6 +93,12 @@
         "url": "/api/organizations/<int:pk>/memberships",
         "module": "organizations.api.OrganizationMemberListAPI",
         "name": "organizations:api:organization-memberships-list",
+        "decorators": ""
+    },
+    {
+        "url": "/api/organizations/<int:pk>/memberships/<int:user_pk>/",
+        "module": "organizations.api.OrganizationMemberDetailAPI",
+        "name": "organizations:api:organization-membership-detail",
         "decorators": ""
     },
     {
@@ -126,6 +150,12 @@
         "decorators": ""
     },
     {
+        "url": "/api/projects/counts/",
+        "module": "projects.api.ProjectCountsListAPI",
+        "name": "projects:api:project-counts-list",
+        "decorators": ""
+    },
+    {
         "url": "/api/projects/<int:pk>/next/",
         "module": "projects.api.ProjectNextTaskAPI",
         "name": "projects:api:project-next",
@@ -153,6 +183,24 @@
         "url": "/api/projects/<int:pk>/summary/",
         "module": "projects.api.ProjectSummaryAPI",
         "name": "projects:api:project-summary",
+        "decorators": ""
+    },
+    {
+        "url": "/api/projects/<int:pk>/summary/reset/",
+        "module": "projects.api.ProjectSummaryResetAPI",
+        "name": "projects:api:project-summary-reset",
+        "decorators": ""
+    },
+    {
+        "url": "/api/projects/<int:pk>/imports/<int:import_pk>/",
+        "module": "projects.api.ProjectImportAPI",
+        "name": "projects:api:project-imports",
+        "decorators": ""
+    },
+    {
+        "url": "/api/projects/<int:pk>/reimports/<int:reimport_pk>/",
+        "module": "projects.api.ProjectReimportAPI",
+        "name": "projects:api:project-reimports",
         "decorators": ""
     },
     {
@@ -228,6 +276,18 @@
         "decorators": ""
     },
     {
+        "url": "/tasks/<int:task_id>/presign/",
+        "module": "data_import.api.TaskPresignStorageData",
+        "name": "data_import:task-storage-data-presign",
+        "decorators": ""
+    },
+    {
+        "url": "/projects/<int:project_id>/presign/",
+        "module": "data_import.api.ProjectPresignStorageData",
+        "name": "data_import:project-storage-data-presign",
+        "decorators": ""
+    },
+    {
         "url": "/api/dm/views/",
         "module": "data_manager.api.ViewAPI",
         "name": "data_manager:api:view-list",
@@ -252,6 +312,18 @@
         "decorators": ""
     },
     {
+        "url": "/api/dm/views/order/",
+        "module": "data_manager.api.ViewAPI",
+        "name": "data_manager:api:view-update-order",
+        "decorators": ""
+    },
+    {
+        "url": "/api/dm/views/order\\.<format>/",
+        "module": "data_manager.api.ViewAPI",
+        "name": "data_manager:api:view-update-order",
+        "decorators": ""
+    },
+    {
         "url": "/api/dm/views/<pk>/",
         "module": "data_manager.api.ViewAPI",
         "name": "data_manager:api:view-detail",
@@ -270,7 +342,7 @@
         "decorators": ""
     },
     {
-        "url": "/api/dm/\\.<format>/",
+        "url": "/api/dm/<drf_format_suffix:format>",
         "module": "rest_framework.routers.APIRootView",
         "name": "data_manager:api:api-root",
         "decorators": ""
@@ -354,6 +426,12 @@
         "decorators": ""
     },
     {
+        "url": "/api/projects/<int:pk>/exports/<int:export_pk>/convert",
+        "module": "data_export.api.ExportConvertAPI",
+        "name": "data_export:api-projects:project-exports-convert",
+        "decorators": ""
+    },
+    {
         "url": "/api/auth/export/",
         "module": "data_export.api.ProjectExportFilesAuthCheck",
         "name": "data_export:project-export-files-auth-check",
@@ -402,7 +480,7 @@
         "decorators": ""
     },
     {
-        "url": "/api/\\.<format>/",
+        "url": "/api/<drf_format_suffix:format>",
         "module": "rest_framework.routers.APIRootView",
         "name": "api-root",
         "decorators": ""
@@ -432,12 +510,6 @@
         "decorators": ""
     },
     {
-        "url": "/data/avatars/<path>",
-        "module": "django.views.static.serve",
-        "name": "",
-        "decorators": ""
-    },
-    {
         "url": "/api/current-user/reset-token/",
         "module": "users.api.UserResetTokenAPI",
         "name": "current-user-reset-token",
@@ -453,6 +525,18 @@
         "url": "/api/current-user/whoami",
         "module": "users.api.UserWhoAmIAPI",
         "name": "current-user-whoami",
+        "decorators": ""
+    },
+    {
+        "url": "/api/current-user/product-tour",
+        "module": "users.product_tours.api.ProductTourAPI",
+        "name": "product-tour",
+        "decorators": ""
+    },
+    {
+        "url": "/data/avatars/<path>",
+        "module": "django.views.static.serve",
+        "name": "",
         "decorators": ""
     },
     {
@@ -534,7 +618,7 @@
         "decorators": ""
     },
     {
-        "url": "/api/\\.<format>/",
+        "url": "/api/<drf_format_suffix:format>",
         "module": "rest_framework.routers.APIRootView",
         "name": "tasks:api-predictions:api-root",
         "decorators": ""
@@ -882,6 +966,12 @@
         "decorators": ""
     },
     {
+        "url": "/api/ml/<int:pk>/predict/test",
+        "module": "ml.api.MLBackendPredictTestAPI",
+        "name": "ml:api:ml-predict-test",
+        "decorators": ""
+    },
+    {
         "url": "/api/ml/<int:pk>/interactive-annotating",
         "module": "ml.api.MLBackendInteractiveAnnotating",
         "name": "ml:api:ml-interactive-annotating",
@@ -966,7 +1056,7 @@
         "decorators": ""
     },
     {
-        "url": "/api/\\.<format>/",
+        "url": "/api/<drf_format_suffix:format>",
         "module": "rest_framework.routers.APIRootView",
         "name": "labels_manager:api-labels:api-root",
         "decorators": ""
@@ -1554,6 +1644,12 @@
         "decorators": ""
     },
     {
+        "url": "/django-rq/queues/<queue_index>/failed/clear/",
+        "module": "django_rq.views.delete_failed_jobs",
+        "name": "rq_delete_failed_jobs",
+        "decorators": ""
+    },
+    {
         "url": "/django-rq/queues/<queue_index>/scheduled/",
         "module": "django_rq.views.scheduled_jobs",
         "name": "rq_scheduled_jobs",
@@ -1620,9 +1716,33 @@
         "decorators": ""
     },
     {
+        "url": "/django-rq/queues/<queue_index>/<job_id>/stop/",
+        "module": "django_rq.views.stop_job",
+        "name": "rq_stop_job",
+        "decorators": ""
+    },
+    {
+        "url": "/django-rq/schedulers/<scheduler_index>/",
+        "module": "django_rq.views.scheduler_jobs",
+        "name": "rq_scheduler_jobs",
+        "decorators": ""
+    },
+    {
         "url": "/feature-flags/",
         "module": "core.views.feature_flags",
         "name": "feature_flags",
+        "decorators": ""
+    },
+    {
+        "url": "/heidi-tips/",
+        "module": "core.views.heidi_tips",
+        "name": "heidi_tips",
+        "decorators": ""
+    },
+    {
+        "url": "/__lsa/",
+        "module": "core.views.collect_metrics",
+        "name": "collect_metrics",
         "decorators": ""
     },
     {
@@ -1635,6 +1755,30 @@
         "url": "/api-auth/logout/",
         "module": "django.contrib.auth.views.LogoutView",
         "name": "rest_framework:logout",
+        "decorators": ""
+    },
+    {
+        "url": "/api/jwt/settings",
+        "module": "jwt_auth.views.JWTSettingsAPI",
+        "name": "jwt_auth:api-jwt-settings",
+        "decorators": ""
+    },
+    {
+        "url": "/api/token/",
+        "module": "jwt_auth.views.LSAPITokenView",
+        "name": "jwt_auth:token_manage",
+        "decorators": ""
+    },
+    {
+        "url": "/api/token/refresh/",
+        "module": "jwt_auth.views.DecoratedTokenRefreshView",
+        "name": "jwt_auth:token_refresh",
+        "decorators": ""
+    },
+    {
+        "url": "/api/token/blacklist/",
+        "module": "jwt_auth.views.LSTokenBlacklistView",
+        "name": "jwt_auth:token_blacklist",
         "decorators": ""
     }
 ]

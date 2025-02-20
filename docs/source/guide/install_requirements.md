@@ -2,14 +2,13 @@
 title: Requirements to Install and upgrade Label Studio
 short: Requirements
 tier: opensource
-section: "Install"
-order: 103
+section: "Install & Setup"
+order: 61 
 meta_title: Requirements to Install and Upgrade
 meta_description: "Label Studio documentation: Requirements to install and upgrade Label Studio." 
 ---
 
-<!-- md deploy.md -->
-
+{% insertmd includes/deploy.md %}
 
 ## Install prerequisite
 
@@ -18,14 +17,14 @@ Install Label Studio in a clean Python environment. Heartex highly recommends us
 
 ## Install with pip
 
-To install Label Studio with pip and a virtual environment, you need Python version 3.7 or later. Run the following:
+To install Label Studio with pip and a virtual environment, you need Python version 3.8 or later. Run the following:
 ```bash
 python3 -m venv env
 source env/bin/activate
 python -m pip install label-studio
 ```
 
-To install Label Studio with pip, you need Python version 3.7 or later. Run the following:
+To install Label Studio with pip, you need Python version 3.8 or later. Run the following:
 ```bash
 pip install label-studio
 ```
@@ -46,6 +45,9 @@ To install and start Label Studio at [http://localhost:8080](http://localhost:80
 ```bash
 docker run -it -p 8080:8080 -v $(pwd)/mydata:/label-studio/data heartexlabs/label-studio:latest
 ```
+
+!!! attention "important"
+    As this is a non-root container, the mounted files and directories must have the proper permissions for the `UID 1001`.
 
 ### Install with Docker on Windows
 Or for Windows, you have to modify the volumes paths set by `-v` option.
@@ -119,7 +121,7 @@ python -m pip install label-studio
 If you want to use nightly builds or extend the functionality, consider downloading the source code using Git and running Label Studio locally:
 
 ```bash
-git clone https://github.com/heartexlabs/label-studio.git
+git clone https://github.com/HumanSignal/label-studio.git
 cd label-studio
 # Install all package dependencies
 pip install -e .

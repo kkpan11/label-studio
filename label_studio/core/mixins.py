@@ -3,12 +3,13 @@
 import logging
 
 from django.db.models.query import QuerySet
+from django.utils.functional import cached_property
 from rest_framework.generics import get_object_or_404
 
 logger = logging.getLogger(__name__)
 
 
-class DummyModelMixin():
+class DummyModelMixin:
     def has_permission(self, user):
         return True
 
@@ -16,14 +17,17 @@ class DummyModelMixin():
 class GetParentObjectMixin:
     parent_queryset = None
 
-    def get_parent_object(self):
+    @cached_property
+    def parent_object(self):
+        return self._get_parent_object()
+
+    def _get_parent_object(self):
         """
         The same as get_object method from DRF, but for the parent object
         For example if you want to get project inside /api/projects/ID/tasks handler
         """
         assert self.parent_queryset is not None, (
-            "'%s' should include a `parent_queryset` attribute, "
-            % self.__class__.__name__
+            "'%s' should include a `parent_queryset` attribute, " % self.__class__.__name__
         )
         queryset = self.parent_queryset
         if isinstance(queryset, QuerySet):
@@ -36,8 +40,7 @@ class GetParentObjectMixin:
         assert lookup_url_kwarg in self.kwargs, (
             'Expected view %s to be called with a URL keyword argument '
             'named "%s". Fix your URL conf, or set the `.lookup_field` '
-            'attribute on the view correctly.' %
-            (self.__class__.__name__, lookup_url_kwarg)
+            'attribute on the view correctly.' % (self.__class__.__name__, lookup_url_kwarg)
         )
 
         filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}

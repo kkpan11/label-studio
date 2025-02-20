@@ -1,18 +1,20 @@
 """This file and its contents are licensed under the Apache License 2.0. Please see the included NOTICE for copyright information and LICENSE for a copy of the license.
 """
+import logging
 import os
 import uuid
-import logging
-import pandas as pd
 from collections import Counter
+
+import pandas as pd
+
 try:
     import ujson as json
-except:
+except:  # noqa: E722
     import json
 
-from django.db import models
-from core.feature_flags import flag_set
 from django.conf import settings
+from django.db import models
+from django.utils.functional import cached_property
 from rest_framework.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
@@ -35,29 +37,27 @@ class FileUpload(models.Model):
         user.project = self.project  # link for activity log
         return self.project.has_permission(user)
 
-    @property
+    @cached_property
     def filepath(self):
         return self.file.name
 
+    @cached_property
+    def file_name(self):
+        return os.path.basename(self.file.name)
+
     @property
     def url(self):
-        if settings.HOSTNAME and settings.CLOUD_FILE_STORAGE_ENABLED:
-            if flag_set('ff_back_dev_2915_storage_nginx_proxy_26092022_short', self.project.organization.created_by):
-                return self.file.url
-            else:
-                return settings.HOSTNAME + self.file.url
-        elif settings.FORCE_SCRIPT_NAME:
+        if settings.FORCE_SCRIPT_NAME and not (settings.HOSTNAME and settings.CLOUD_FILE_STORAGE_ENABLED):
             return settings.FORCE_SCRIPT_NAME + '/' + self.file.url.lstrip('/')
         else:
             return self.file.url
 
     @property
     def format(self):
-        filepath = self.file.name
         file_format = None
         try:
-            file_format = os.path.splitext(filepath)[-1]
-        except:
+            file_format = os.path.splitext(self.filepath)[-1]
+        except:  # noqa: E722
             pass
         finally:
             logger.debug('Get file format ' + str(file_format))
@@ -74,7 +74,7 @@ class FileUpload(models.Model):
         return body
 
     def read_tasks_list_from_csv(self, sep=','):
-        logger.debug('Read tasks list from CSV file {}'.format(self.file.name))
+        logger.debug('Read tasks list from CSV file {}'.format(self.filepath))
         tasks = pd.read_csv(self.file.open(), sep=sep).fillna('').to_dict('records')
         tasks = [{'data': task} for task in tasks]
         return tasks
@@ -83,13 +83,13 @@ class FileUpload(models.Model):
         return self.read_tasks_list_from_csv('\t')
 
     def read_tasks_list_from_txt(self):
-        logger.debug('Read tasks list from text file {}'.format(self.file.name))
+        logger.debug('Read tasks list from text file {}'.format(self.filepath))
         lines = self.content.splitlines()
         tasks = [{'data': {settings.DATA_UNDEFINED_NAME: line}} for line in lines]
         return tasks
 
     def read_tasks_list_from_json(self):
-        logger.debug('Read tasks list from JSON file {}'.format(self.file.name))
+        logger.debug('Read tasks list from JSON file {}'.format(self.filepath))
 
         raw_data = self.content
         # Python 3.5 compatibility fix https://docs.python.org/3/whatsnew/3.6.html#json
@@ -109,15 +109,15 @@ class FileUpload(models.Model):
         return tasks_formatted
 
     def read_task_from_hypertext_body(self):
-        logger.debug('Read 1 task from hypertext file {}'.format(self.file.name))
+        logger.debug('Read 1 task from hypertext file {}'.format(self.filepath))
         body = self.content
         tasks = [{'data': {settings.DATA_UNDEFINED_NAME: body}}]
         return tasks
 
     def read_task_from_uploaded_file(self):
-        logger.debug('Read 1 task from uploaded file {}'.format(self.file.name))
+        logger.debug('Read 1 task from uploaded file {}'.format(self.filepath))
         if settings.CLOUD_FILE_STORAGE_ENABLED:
-            tasks = [{'data': {settings.DATA_UNDEFINED_NAME: self.file.name}}]
+            tasks = [{'data': {settings.DATA_UNDEFINED_NAME: self.filepath}}]
         else:
             tasks = [{'data': {settings.DATA_UNDEFINED_NAME: self.url}}]
         return tasks
@@ -143,7 +143,8 @@ class FileUpload(models.Model):
             elif not self.project.one_object_in_label_config:
                 raise ValidationError(
                     'Your label config has more than one data key and direct file upload supports only '
-                    'one data key. To import data with multiple data keys, use a JSON or CSV file.')
+                    'one data key. To import data with multiple data keys, use a JSON or CSV file.'
+                )
 
             # file as a single asset
             elif file_format in ('.html', '.htm', '.xml'):
@@ -152,11 +153,13 @@ class FileUpload(models.Model):
                 tasks = self.read_task_from_uploaded_file()
 
         except Exception as exc:
-            raise ValidationError('Failed to parse input file ' + self.file.name + ': ' + str(exc))
+            raise ValidationError('Failed to parse input file ' + self.file_name + ': ' + str(exc))
         return tasks
 
     @classmethod
-    def load_tasks_from_uploaded_files(cls, project, file_upload_ids=None, formats=None, files_as_tasks_list=True, trim_size=None):
+    def load_tasks_from_uploaded_files(
+        cls, project, file_upload_ids=None, formats=None, files_as_tasks_list=True, trim_size=None
+    ):
         tasks = []
         fileformats = []
         common_data_fields = set()
@@ -202,14 +205,19 @@ def _old_vs_new_data_keys_inconsistency_message(new_data_keys, old_data_keys, cu
     if new_data_keys_list == old_data_keys_list:
         return ''
     elif new_data_keys_list == settings.DATA_UNDEFINED_NAME:
-        return common_prefix + "uploading a single file {0} " \
-                               "clashes with data key(s) found from other files:\n\"{1}\"".format(
-                                current_file, old_data_keys_list)
+        return (
+            common_prefix + 'uploading a single file {0} '
+            'clashes with data key(s) found from other files:\n"{1}"'.format(current_file, old_data_keys_list)
+        )
     elif old_data_keys_list == settings.DATA_UNDEFINED_NAME:
-        return common_prefix + "uploading tabular data from {0} with data key(s) {1}, " \
-                               "clashes with other raw binary files (images, audios, etc.)".format(
-                                current_file, new_data_keys_list)
+        return (
+            common_prefix + 'uploading tabular data from {0} with data key(s) {1}, '
+            'clashes with other raw binary files (images, audios, etc.)'.format(current_file, new_data_keys_list)
+        )
     else:
-        return common_prefix + "uploading tabular data from \"{0}\" with data key(s) \"{1}\", " \
-                               "clashes with data key(s) found from other files:\n\"{2}\"".format(
-                                current_file, new_data_keys_list, old_data_keys_list)
+        return (
+            common_prefix + 'uploading tabular data from "{0}" with data key(s) "{1}", '
+            'clashes with data key(s) found from other files:\n"{2}"'.format(
+                current_file, new_data_keys_list, old_data_keys_list
+            )
+        )
